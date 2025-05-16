@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"github.com/sdvaanyaa/text-archiver/lib/vlc"
 	"github.com/spf13/cobra"
 	"os"
@@ -9,17 +8,16 @@ import (
 	"strings"
 )
 
-var vlcCmd = &cobra.Command{
+var vlcUnpackCmd = &cobra.Command{
 	Use:   "vlc",
-	Short: "Pack file using variable-length code",
-	Run:   pack,
+	Short: "Unpack file using variable-length code",
+	Run:   unpack,
 }
 
-const packedExtension = "vlc"
+// TODO: take extension from file
+const unpackedExtension = "txt"
 
-var ErrEmptyPath = errors.New("path to file is not specified")
-
-func pack(_ *cobra.Command, args []string) {
+func unpack(_ *cobra.Command, args []string) {
 	if len(args) == 0 || args[0] == "" {
 		handleErr(ErrEmptyPath)
 	}
@@ -31,23 +29,24 @@ func pack(_ *cobra.Command, args []string) {
 		handleErr(err)
 	}
 
-	packed := vlc.Encode(string(data))
+	packed := vlc.Decode(string(data))
 
-	err = os.WriteFile(packedFileName(filePath), []byte(packed), 0644)
+	err = os.WriteFile(unpackedFileName(filePath), []byte(packed), 0644)
 	if err != nil {
 		handleErr(err)
 	}
 }
 
+// TODO: refactor this
 // /path/to/file/file.txt -> file.vlc
-func packedFileName(path string) string {
+func unpackedFileName(path string) string {
 	fileName := filepath.Base(path)
 	ext := filepath.Ext(fileName)
 	baseName := strings.TrimSuffix(fileName, ext)
 
-	return baseName + "." + packedExtension
+	return baseName + "." + unpackedExtension
 }
 
 func init() {
-	packCmd.AddCommand(vlcCmd)
+	unpackCmd.AddCommand(vlcUnpackCmd)
 }
